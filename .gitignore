@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+.env
+.env.local
+*.log
+.DS_Store
+certificates
+.idea
+*.iml
+tsconfig.tsbuildinfo
+.claude
+CLAUDE.md
+
+# Local Netlify folder
+.netlify
