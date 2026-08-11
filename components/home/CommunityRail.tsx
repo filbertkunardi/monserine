@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
+import Lightbox from "@/components/Lightbox";
 
 type CommunityEntry = {
   username: string;
@@ -36,6 +37,7 @@ function PersonIcon() {
 
 function CommunityCard({ entry, onLinkClick }: { entry: CommunityEntry; onLinkClick: (e: React.MouseEvent) => void }) {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const hasPhotos = entry.photos.length > 0;
   const multiple = entry.photos.length > 1;
 
@@ -47,7 +49,10 @@ function CommunityCard({ entry, onLinkClick }: { entry: CommunityEntry; onLinkCl
       </div>
       <div className="relative flex items-center justify-center">
         {hasPhotos ? (
-          <div className="relative aspect-[3/4] w-full overflow-hidden">
+          <div
+            onClick={() => setLightboxOpen(true)}
+            className="relative aspect-[3/4] w-full cursor-zoom-in overflow-hidden"
+          >
             <Image src={entry.photos[photoIndex]} alt={entry.username} fill sizes="300px" className="object-cover object-top" />
           </div>
         ) : (
@@ -61,7 +66,10 @@ function CommunityCard({ entry, onLinkClick }: { entry: CommunityEntry; onLinkCl
         {multiple && (
           <>
             <button
-              onClick={() => setPhotoIndex((i) => (i - 1 + entry.photos.length) % entry.photos.length)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPhotoIndex((i) => (i - 1 + entry.photos.length) % entry.photos.length);
+              }}
               aria-label="Previous photo"
               className="absolute left-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/85"
             >
@@ -70,7 +78,10 @@ function CommunityCard({ entry, onLinkClick }: { entry: CommunityEntry; onLinkCl
               </svg>
             </button>
             <button
-              onClick={() => setPhotoIndex((i) => (i + 1) % entry.photos.length)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPhotoIndex((i) => (i + 1) % entry.photos.length);
+              }}
               aria-label="Next photo"
               className="absolute right-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/85"
             >
@@ -94,6 +105,15 @@ function CommunityCard({ entry, onLinkClick }: { entry: CommunityEntry; onLinkCl
       <Link href={entry.link} draggable={false} onClick={onLinkClick} className="text-xs font-semibold uppercase tracking-[0.05em] text-dark">
         Shop Now →
       </Link>
+
+      {lightboxOpen && (
+        <Lightbox
+          images={entry.photos.map((url) => ({ url, alt: entry.username }))}
+          index={photoIndex}
+          onClose={() => setLightboxOpen(false)}
+          onIndexChange={setPhotoIndex}
+        />
+      )}
     </div>
   );
 }

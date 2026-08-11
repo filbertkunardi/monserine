@@ -6,7 +6,12 @@ import type { Product } from "@/lib/shopify/queries";
 import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
 
 function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency: currencyCode }).format(Number(amount));
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number(amount));
 }
 
 function ArrowButton({

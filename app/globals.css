@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  touch-action: manipulation;
+}
+
 @layer utilities {
   .scroll-hide {
     scrollbar-width: none;

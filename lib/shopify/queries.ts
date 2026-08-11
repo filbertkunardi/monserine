@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { storefrontFetch } from "./storefront";
 
 export type Money = {
@@ -23,6 +24,7 @@ export type ProductVariant = {
   availableForSale: boolean;
   price: Money;
   selectedOptions: { name: string; value: string }[];
+  image: { url: string; altText: string | null } | null;
 };
 
 export type ProductDetail = {
@@ -182,6 +184,10 @@ const PRODUCT_DETAIL_QUERY = /* GraphQL */ `
             selectedOptions {
               name
               value
+            }
+            image {
+              url
+              altText
             }
           }
         }
@@ -396,4 +402,39 @@ export async function removeCartLine(cartId: string, lineId: string): Promise<Ca
     lineIds: [lineId],
   });
   return assertNoUserErrors(data.cartLinesRemove);
+}
+
+const CUSTOMER_CREATE_MUTATION = /* GraphQL */ `
+  mutation CustomerCreate($input: CustomerCreateInput!) {
+    customerCreate(input: $input) {
+      customer {
+        id
+      }
+      customerUserErrors {
+        code
+        message
+      }
+    }
+  }
+`;
+
+export type NewsletterSubscribeResult = "subscribed" | "already_subscribed" | "error";
+
+export async function subscribeToNewsletter(email: string, buyerIp?: string): Promise<NewsletterSubscribeResult> {
+  const password = crypto.randomBytes(16).toString("hex");
+  const data = await storefrontFetch<{
+    customerCreate: {
+      customer: { id: string } | null;
+      customerUserErrors: { code: string; message: string }[];
+    };
+  }>(
+    CUSTOMER_CREATE_MUTATION,
+    { input: { email, password, acceptsMarketing: true } },
+    { buyerIp }
+  );
+
+  const { customer, customerUserErrors } = data.customerCreate;
+  if (customer) return "subscribed";
+  if (customerUserErrors.some((e) => e.code === "TAKEN")) return "already_subscribed";
+  return "error";
 }

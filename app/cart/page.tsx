@@ -6,9 +6,11 @@ import CartLineRow from "@/components/CartLineRow";
 export const dynamic = "force-dynamic";
 
 function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currencyCode,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(Number(amount));
 }
 

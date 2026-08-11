@@ -1,11 +1,16 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ProductOption, ProductVariant } from "@/lib/shopify/queries";
 
 function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency: currencyCode }).format(Number(amount));
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Number(amount));
 }
 
 function defaultSelection(variants: ProductVariant[]): Record<string, string> {
@@ -18,9 +23,11 @@ function defaultSelection(variants: ProductVariant[]): Record<string, string> {
 export default function VariantSelector({
   options,
   variants,
+  onVariantChange,
 }: {
   options: ProductOption[];
   variants: ProductVariant[];
+  onVariantChange?: (variant: ProductVariant | undefined) => void;
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Record<string, string>>(() => defaultSelection(variants));
@@ -31,6 +38,13 @@ export default function VariantSelector({
     () => variants.find((v) => v.selectedOptions.every((o) => selected[o.name] === o.value)),
     [variants, selected]
   );
+
+  const initialVariant = useRef(matchedVariant);
+  useEffect(() => {
+    if (matchedVariant === initialVariant.current) return;
+    onVariantChange?.(matchedVariant);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchedVariant]);
 
   const showSelector = !(options.length === 1 && options[0].name === "Title");
 

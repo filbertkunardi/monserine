@@ -8,9 +8,11 @@ import type { Cart } from "@/lib/shopify/queries";
 type Line = Cart["lines"]["edges"][number]["node"];
 
 function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currencyCode,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(Number(amount));
 }
 

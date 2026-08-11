@@ -16,19 +16,24 @@ type GraphQLResponse<T> = {
 export async function storefrontFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
-  options?: { cache?: RequestCache; revalidate?: number }
+  options?: { cache?: RequestCache; revalidate?: number; buyerIp?: string }
 ): Promise<T> {
   const token = process.env.SHOPIFY_STOREFRONT_PUBLIC_TOKEN;
   if (!token) {
     throw new Error("SHOPIFY_STOREFRONT_PUBLIC_TOKEN is not set");
   }
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Shopify-Storefront-Access-Token": token,
+  };
+  if (options?.buyerIp) {
+    headers["Shopify-Storefront-Buyer-IP"] = options.buyerIp;
+  }
+
   const res = await fetch(endpoint(), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Storefront-Access-Token": token,
-    },
+    headers,
     body: JSON.stringify({ query, variables }),
     cache: options?.cache,
     next: options?.revalidate !== undefined ? { revalidate: options.revalidate } : undefined,

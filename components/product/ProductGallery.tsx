@@ -1,15 +1,44 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Lightbox from "@/components/Lightbox";
 
 type GalleryImage = { url: string; altText: string | null };
 
 const SWIPE_THRESHOLD = 40;
 
-export default function ProductGallery({ images, title }: { images: GalleryImage[]; title: string }) {
+export default function ProductGallery({
+  images,
+  title,
+  activeImageUrl,
+}: {
+  images: GalleryImage[];
+  title: string;
+  activeImageUrl?: string | null;
+}) {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const dragState = useRef({ active: false, startX: 0 });
+  const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const desktopContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!activeImageUrl) return;
+    const index = images.findIndex((img) => img.url === activeImageUrl);
+    if (index === -1) return;
+    setPhotoIndex((current) => (current === index ? current : index));
+
+    const container = desktopContainerRef.current;
+    const target = imageRefs.current[index];
+    if (container && target) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const scrollTop = container.scrollTop + (targetRect.top - containerRect.top);
+      container.scrollTo({ top: scrollTop, behavior: "smooth" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeImageUrl]);
 
   if (images.length === 0) {
     return <div className="aspect-[3/4] w-full bg-creamPanel" />;
@@ -24,16 +53,17 @@ export default function ProductGallery({ images, title }: { images: GalleryImage
   }
 
   function onPointerDown(e: React.PointerEvent) {
-    if (images.length < 2) return;
     dragState.current = { active: true, startX: e.clientX };
-    e.currentTarget.setPointerCapture(e.pointerId);
   }
 
   function onPointerUp(e: React.PointerEvent) {
     if (!dragState.current.active) return;
     dragState.current.active = false;
     const dx = e.clientX - dragState.current.startX;
-    if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+    if (Math.abs(dx) < SWIPE_THRESHOLD || images.length < 2) {
+      setLightboxIndex(photoIndex);
+      return;
+    }
     if (dx < 0) goNext();
     else goPrev();
   }
@@ -45,9 +75,21 @@ export default function ProductGallery({ images, title }: { images: GalleryImage
   return (
     <>
       {/* Desktop: sticky stacked images */}
-      <div className="scroll-hide sticky top-6 hidden max-h-[calc(100vh-48px)] flex-col gap-4 overflow-y-auto bg-creamPanel min-[761px]:flex">
+      <div
+        ref={desktopContainerRef}
+        className="scroll-hide sticky top-6 hidden max-h-[calc(100vh-48px)] flex-col gap-4 overflow-y-auto bg-creamPanel min-[761px]:flex"
+      >
         {images.map((image, i) => (
-          <img key={i} src={image.url} alt={image.altText ?? title} className="block h-auto w-full" />
+          <img
+            key={i}
+            ref={(el) => {
+              imageRefs.current[i] = el;
+            }}
+            src={image.url}
+            alt={image.altText ?? title}
+            onClick={() => setLightboxIndex(i)}
+            className="block h-auto w-full cursor-zoom-in"
+          />
         ))}
       </div>
 
@@ -69,7 +111,12 @@ export default function ProductGallery({ images, title }: { images: GalleryImage
         {images.length > 1 && (
           <>
             <button
-              onClick={goPrev}
+              onPointerDown={(e) => e.stopPropagation()}
+              onPointerUp={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                goPrev();
+              }}
               aria-label="Previous photo"
               className="absolute left-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/85"
             >
@@ -78,7 +125,12 @@ export default function ProductGallery({ images, title }: { images: GalleryImage
               </svg>
             </button>
             <button
-              onClick={goNext}
+              onPointerDown={(e) => e.stopPropagation()}
+              onPointerUp={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                goNext();
+              }}
               aria-label="Next photo"
               className="absolute right-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/85"
             >
@@ -92,6 +144,15 @@ export default function ProductGallery({ images, title }: { images: GalleryImage
           </>
         )}
       </div>
+
+      {lightboxIndex !== null && (
+        <Lightbox
+          images={images.map((img) => ({ url: img.url, alt: img.altText ?? title }))}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onIndexChange={setLightboxIndex}
+        />
+      )}
     </>
   );
 }

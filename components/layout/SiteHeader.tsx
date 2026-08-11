@@ -301,7 +301,7 @@ export default function SiteHeader({ cartCount }: { cartCount: number }) {
           <div className="flex flex-col gap-[18px]">
             <button
               onClick={() => setMobileShopOpen((v) => !v)}
-              className="flex items-center justify-between"
+              className="flex items-center justify-between uppercase"
             >
               <span>Shop</span>
               <ChevronIcon open={mobileShopOpen} />
