@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ProductOption, ProductVariant } from "@/lib/shopify/queries";
 
@@ -39,14 +39,14 @@ export default function VariantSelector({
     [variants, selected]
   );
 
-  const initialVariant = useRef(matchedVariant);
-  useEffect(() => {
-    if (matchedVariant === initialVariant.current) return;
-    onVariantChange?.(matchedVariant);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchedVariant]);
-
   const showSelector = !(options.length === 1 && options[0].name === "Title");
+
+  function selectOption(name: string, value: string) {
+    const next = { ...selected, [name]: value };
+    setSelected(next);
+    const variant = variants.find((v) => v.selectedOptions.every((o) => next[o.name] === o.value));
+    onVariantChange?.(variant);
+  }
 
   function addToBag() {
     if (!matchedVariant) return;
@@ -83,7 +83,7 @@ export default function VariantSelector({
                 return (
                   <button
                     key={value}
-                    onClick={() => setSelected((s) => ({ ...s, [option.name]: value }))}
+                    onClick={() => selectOption(option.name, value)}
                     className={`border px-[18px] py-2.5 text-[13px] font-medium ${
                       isSelected ? "border-dark bg-dark text-cream" : "border-dark text-dark"
                     }`}
