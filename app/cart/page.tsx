@@ -2,17 +2,9 @@ import Link from "next/link";
 import { getCartId } from "@/lib/cart";
 import { getCart } from "@/lib/shopify/queries";
 import CartLineRow from "@/components/CartLineRow";
+import { formatPrice } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Number(amount));
-}
 
 export default async function CartPage() {
   const cartId = await getCartId();

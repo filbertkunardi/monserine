@@ -2,6 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { COUNTRIES } from "@/lib/countries";
 
 const FOOTER_LINKS = [
   { href: "/about", label: "About Us" },
@@ -10,7 +13,43 @@ const FOOTER_LINKS = [
   { href: "/terms", label: "Terms" },
 ];
 
-export default function SiteFooter() {
+function CurrencySelector({ currentCountry }: { currentCountry: string }) {
+  const router = useRouter();
+  const [country, setCountry] = useState(currentCountry);
+  const [isPending, startTransition] = useTransition();
+
+  function onChange(next: string) {
+    setCountry(next);
+    startTransition(async () => {
+      await fetch("/api/currency", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ country: next }),
+      });
+      router.refresh();
+    });
+  }
+
+  return (
+    <label className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.05em] text-footerLink">
+      Currency
+      <select
+        value={country}
+        disabled={isPending}
+        onChange={(e) => onChange(e.target.value)}
+        className="border border-footerLink/40 bg-dark px-2 py-1 text-[11px] normal-case tracking-normal text-footerLink disabled:opacity-60"
+      >
+        {COUNTRIES.map((c) => (
+          <option key={c.code} value={c.code} className="bg-cream text-dark">
+            {c.name} ({c.currency})
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+export default function SiteFooter({ currentCountry }: { currentCountry: string }) {
   return (
     <div className="flex flex-col items-center gap-5 bg-dark px-[clamp(20px,5vw,56px)] py-[clamp(32px,6vw,56px)] text-center">
       <Link href="/" className="flex items-center">
@@ -65,6 +104,7 @@ export default function SiteFooter() {
         </svg>
         Back to Top
       </button>
+      <CurrencySelector currentCountry={currentCountry} />
       <div className="mt-1 text-[11px] text-copyright">© 2026 Monserine</div>
     </div>
   );

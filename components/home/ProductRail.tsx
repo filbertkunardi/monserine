@@ -4,15 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/lib/shopify/queries";
 import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
-
-function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Number(amount));
-}
+import { formatPrice } from "@/lib/format";
 
 function ArrowButton({
   direction,

@@ -1,5 +1,7 @@
 import crypto from "crypto";
 import { storefrontFetch } from "./storefront";
+import { getVisitorCountry } from "@/lib/geo";
+import { COUNTRY_NAMES } from "@/lib/countries";
 
 export type Money = {
   amount: string;
@@ -98,7 +100,8 @@ const PRODUCT_FRAGMENT = /* GraphQL */ `
 
 const PRODUCTS_QUERY = /* GraphQL */ `
   ${PRODUCT_FRAGMENT}
-  query Products($first: Int!, $sortKey: ProductSortKeys, $reverse: Boolean, $query: String) {
+  query Products($first: Int!, $sortKey: ProductSortKeys, $reverse: Boolean, $query: String, $country: CountryCode)
+  @inContext(country: $country) {
     products(first: $first, sortKey: $sortKey, reverse: $reverse, query: $query) {
       edges {
         node {
@@ -118,9 +121,10 @@ export async function getProducts(
   } = {}
 ): Promise<Product[]> {
   const { first = 24, sortKey, reverse, query } = options;
+  const country = await getVisitorCountry();
   const data = await storefrontFetch<{ products: { edges: { node: Product }[] } }>(
     PRODUCTS_QUERY,
-    { first, sortKey, reverse, query },
+    { first, sortKey, reverse, query, country },
     { revalidate: 60 }
   );
   return data.products.edges.map((e) => e.node);
@@ -128,7 +132,7 @@ export async function getProducts(
 
 const COLLECTION_PRODUCTS_QUERY = /* GraphQL */ `
   ${PRODUCT_FRAGMENT}
-  query CollectionProducts($handle: String!, $first: Int!) {
+  query CollectionProducts($handle: String!, $first: Int!, $country: CountryCode) @inContext(country: $country) {
     collectionByHandle(handle: $handle) {
       products(first: $first) {
         edges {
@@ -146,15 +150,16 @@ export async function getProductsByCollection(
   options: { first?: number } = {}
 ): Promise<Product[] | null> {
   const { first = 48 } = options;
+  const country = await getVisitorCountry();
   const data = await storefrontFetch<{
     collectionByHandle: { products: { edges: { node: Product }[] } } | null;
-  }>(COLLECTION_PRODUCTS_QUERY, { handle, first }, { revalidate: 60 });
+  }>(COLLECTION_PRODUCTS_QUERY, { handle, first, country }, { revalidate: 60 });
   if (!data.collectionByHandle) return null;
   return data.collectionByHandle.products.edges.map((e) => e.node);
 }
 
 const PRODUCT_DETAIL_QUERY = /* GraphQL */ `
-  query ProductByHandle($handle: String!) {
+  query ProductByHandle($handle: String!, $country: CountryCode) @inContext(country: $country) {
     product(handle: $handle) {
       id
       handle
@@ -228,6 +233,7 @@ function parseSizeGuide(raw: string | null | undefined): string[][] {
 }
 
 export async function getProductByHandle(handle: string): Promise<ProductDetail | null> {
+  const country = await getVisitorCountry();
   const data = await storefrontFetch<{
     product:
       | (Omit<ProductDetail, "fitDetails" | "sizeGuide"> & {
@@ -235,7 +241,7 @@ export async function getProductByHandle(handle: string): Promise<ProductDetail 
           sizeGuide: { value: string } | null;
         })
       | null;
-  }>(PRODUCT_DETAIL_QUERY, { handle }, { revalidate: 60 });
+  }>(PRODUCT_DETAIL_QUERY, { handle, country }, { revalidate: 60 });
   if (!data.product) return null;
   return {
     ...data.product,
@@ -286,8 +292,8 @@ const CART_FRAGMENT = /* GraphQL */ `
 
 const CART_CREATE_MUTATION = /* GraphQL */ `
   ${CART_FRAGMENT}
-  mutation CartCreate($lines: [CartLineInput!]) {
-    cartCreate(input: { lines: $lines }) {
+  mutation CartCreate($lines: [CartLineInput!], $buyerIdentity: CartBuyerIdentityInput) {
+    cartCreate(input: { lines: $lines, buyerIdentity: $buyerIdentity }) {
       cart {
         ...CartFields
       }
@@ -365,10 +371,34 @@ function assertNoUserErrors(result: CartMutationResult): Cart {
 }
 
 export async function createCart(merchandiseId: string, quantity: number): Promise<Cart> {
+  const country = await getVisitorCountry();
   const data = await storefrontFetch<{ cartCreate: CartMutationResult }>(CART_CREATE_MUTATION, {
     lines: [{ merchandiseId, quantity }],
+    buyerIdentity: { countryCode: country },
   });
   return assertNoUserErrors(data.cartCreate);
+}
+
+const CART_BUYER_IDENTITY_UPDATE_MUTATION = /* GraphQL */ `
+  ${CART_FRAGMENT}
+  mutation CartBuyerIdentityUpdate($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
+    cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+      cart {
+        ...CartFields
+      }
+      userErrors {
+        message
+      }
+    }
+  }
+`;
+
+export async function updateCartCountry(cartId: string, country: string): Promise<Cart> {
+  const data = await storefrontFetch<{ cartBuyerIdentityUpdate: CartMutationResult }>(
+    CART_BUYER_IDENTITY_UPDATE_MUTATION,
+    { cartId, buyerIdentity: { countryCode: country } }
+  );
+  return assertNoUserErrors(data.cartBuyerIdentityUpdate);
 }
 
 export async function getCart(cartId: string): Promise<Cart | null> {
@@ -418,7 +448,79 @@ const CUSTOMER_CREATE_MUTATION = /* GraphQL */ `
   }
 `;
 
+const CUSTOMER_ACCESS_TOKEN_CREATE_MUTATION = /* GraphQL */ `
+  mutation CustomerAccessTokenCreate($input: CustomerAccessTokenCreateInput!) {
+    customerAccessTokenCreate(input: $input) {
+      customerAccessToken {
+        accessToken
+      }
+      customerUserErrors {
+        code
+        message
+      }
+    }
+  }
+`;
+
+const CUSTOMER_ADDRESS_CREATE_MUTATION = /* GraphQL */ `
+  mutation CustomerAddressCreate($customerAccessToken: String!, $address: MailingAddressInput!) {
+    customerAddressCreate(customerAccessToken: $customerAccessToken, address: $address) {
+      customerAddress {
+        id
+      }
+      customerUserErrors {
+        code
+        message
+      }
+    }
+  }
+`;
+
+const CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION = /* GraphQL */ `
+  mutation CustomerDefaultAddressUpdate($customerAccessToken: String!, $addressId: ID!) {
+    customerDefaultAddressUpdate(customerAccessToken: $customerAccessToken, addressId: $addressId) {
+      customerUserErrors {
+        code
+        message
+      }
+    }
+  }
+`;
+
 export type NewsletterSubscribeResult = "subscribed" | "already_subscribed" | "error";
+
+async function attachCountryToCustomer(email: string, password: string, country: string): Promise<void> {
+  const countryName = COUNTRY_NAMES[country];
+  if (!countryName) return;
+
+  const tokenData = await storefrontFetch<{
+    customerAccessTokenCreate: {
+      customerAccessToken: { accessToken: string } | null;
+      customerUserErrors: { code: string; message: string }[];
+    };
+  }>(CUSTOMER_ACCESS_TOKEN_CREATE_MUTATION, { input: { email, password } });
+
+  const accessToken = tokenData.customerAccessTokenCreate.customerAccessToken?.accessToken;
+  if (!accessToken) return;
+
+  const addressData = await storefrontFetch<{
+    customerAddressCreate: {
+      customerAddress: { id: string } | null;
+      customerUserErrors: { code: string; message: string }[];
+    };
+  }>(CUSTOMER_ADDRESS_CREATE_MUTATION, {
+    customerAccessToken: accessToken,
+    address: { country: countryName },
+  });
+
+  const addressId = addressData.customerAddressCreate.customerAddress?.id;
+  if (!addressId) return;
+
+  await storefrontFetch(CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION, {
+    customerAccessToken: accessToken,
+    addressId,
+  });
+}
 
 export async function subscribeToNewsletter(email: string, buyerIp?: string): Promise<NewsletterSubscribeResult> {
   const password = crypto.randomBytes(16).toString("hex");
@@ -434,7 +536,15 @@ export async function subscribeToNewsletter(email: string, buyerIp?: string): Pr
   );
 
   const { customer, customerUserErrors } = data.customerCreate;
-  if (customer) return "subscribed";
+  if (customer) {
+    try {
+      const country = await getVisitorCountry();
+      await attachCountryToCustomer(email, password, country);
+    } catch (err) {
+      console.error("Failed to attach country to new newsletter subscriber:", err);
+    }
+    return "subscribed";
+  }
   if (customerUserErrors.some((e) => e.code === "TAKEN")) return "already_subscribed";
   return "error";
 }

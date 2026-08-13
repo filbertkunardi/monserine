@@ -3,15 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ProductOption, ProductVariant } from "@/lib/shopify/queries";
-
-function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Number(amount));
-}
+import { formatPrice } from "@/lib/format";
 
 function defaultSelection(variants: ProductVariant[]): Record<string, string> {
   const variant = variants.find((v) => v.availableForSale) ?? variants[0];

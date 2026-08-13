@@ -4,17 +4,9 @@ import Image from "next/image";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Cart } from "@/lib/shopify/queries";
+import { formatPrice } from "@/lib/format";
 
 type Line = Cart["lines"]["edges"][number]["node"];
-
-function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Number(amount));
-}
 
 export default function CartLineRow({ line }: { line: Line }) {
   const router = useRouter();

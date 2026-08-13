@@ -2,17 +2,9 @@ import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { refreshTokens } from "@/lib/shopify/customerAccount";
 import { getCustomerWithOrders, type Customer } from "@/lib/shopify/customerQueries";
+import { formatPrice } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-function formatPrice(amount: string, currencyCode: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Number(amount));
-}
 
 async function loadCustomer(): Promise<{ customer: Customer | null; error: string | null }> {
   let session;

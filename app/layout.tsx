@@ -6,6 +6,7 @@ import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
 import { getCartId } from "@/lib/cart";
 import { getCart } from "@/lib/shopify/queries";
+import { getVisitorCountry } from "@/lib/geo";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -50,14 +51,14 @@ async function getCartCount(): Promise<number> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cartCount = await getCartCount();
+  const [cartCount, currentCountry] = await Promise.all([getCartCount(), getVisitorCountry()]);
 
   return (
     <html lang="en" className={`${poppins.variable} ${barlowCondensed.variable} ${bebas.variable} ${astonScript.variable}`}>
       <body className="flex min-h-screen flex-col bg-cream font-sans text-dark antialiased">
         <SiteHeader cartCount={cartCount} />
         <div className="flex-1">{children}</div>
-        <SiteFooter />
+        <SiteFooter currentCountry={currentCountry} />
       </body>
     </html>
   );
