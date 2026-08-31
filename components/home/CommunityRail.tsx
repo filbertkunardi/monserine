@@ -15,14 +15,47 @@ type CommunityEntry = {
 
 const COMMUNITY: CommunityEntry[] = [
   {
-    username: "@aiko.chan",
-    productName: "Maris Top",
-    link: "/products/maris-top",
-    photos: ["/images/community/aiko-1.jpg", "/images/community/aiko-2.jpg"],
+    username: "@nadine_abigail_",
+    productName: "Guizio Top",
+    link: "/products/guizio-top",
+    photos: [
+      "/images/community/nadine_abigail_-1.jpg",
+      "/images/community/nadine_abigail_-2.jpg",
+      "/images/community/nadine_abigail_-3.jpg",
+    ],
   },
-  { username: "@juno.wears", productName: "Linden Slip Dress", link: "#", photos: [] },
-  { username: "@softclara", productName: "Wren Knit Cardigan", link: "#", photos: [] },
-  { username: "@marisol.st", productName: "Coraline Midi Skirt", link: "#", photos: [] },
+  {
+    username: "@aiko.chan",
+    productName: "Muse Lace Top",
+    link: "/products/muse-lace-top",
+    photos: [
+      "/images/community/aiko.chan-1.jpg",
+      "/images/community/aiko.chan-2.jpg",
+      "/images/community/aiko.chan-3.jpg",
+      "/images/community/aiko.chan-4.jpg",
+    ],
+  },
+  {
+    username: "@devann3y",
+    productName: "Muse Lace Top",
+    link: "/products/muse-lace-top",
+    photos: [
+      "/images/community/devann3y-1.jpg",
+      "/images/community/devann3y-2.jpg",
+      "/images/community/devann3y-3.jpg",
+      "/images/community/devann3y-4.jpg",
+    ],
+  },
+  {
+    username: "@joanneputri",
+    productName: "Muse Lace Top",
+    link: "/products/muse-lace-top",
+    photos: [
+      "/images/community/joanneputri-1.jpg",
+      "/images/community/joanneputri-2.jpg",
+      "/images/community/joanneputri-3.jpg",
+    ],
+  },
 ];
 
 function PersonIcon() {
