@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { exchangeCodeForTokens } from "@/lib/shopify/customerAccount";
+import { decodeIdTokenEmail, exchangeCodeForTokens } from "@/lib/shopify/customerAccount";
 import { getSession } from "@/lib/session";
+import { getCartId } from "@/lib/cart";
+import { updateCartEmail } from "@/lib/shopify/queries";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -26,6 +28,16 @@ export async function GET(req: NextRequest) {
     session.idToken = tokens.id_token;
     session.expiresAt = Date.now() + tokens.expires_in * 1000;
     await session.save();
+
+    const cartId = await getCartId();
+    const email = decodeIdTokenEmail(tokens.id_token);
+    if (cartId && email) {
+      try {
+        await updateCartEmail(cartId, email);
+      } catch (err) {
+        console.error("Failed to sync buyer email to existing cart:", err);
+      }
+    }
   } catch (err) {
     console.error("Shopify customer account token exchange failed:", err);
     return NextResponse.redirect(new URL("/account?error=auth_failed", req.url));

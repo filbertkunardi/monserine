@@ -370,11 +370,11 @@ function assertNoUserErrors(result: CartMutationResult): Cart {
   return result.cart;
 }
 
-export async function createCart(merchandiseId: string, quantity: number): Promise<Cart> {
+export async function createCart(merchandiseId: string, quantity: number, email?: string): Promise<Cart> {
   const country = await getVisitorCountry();
   const data = await storefrontFetch<{ cartCreate: CartMutationResult }>(CART_CREATE_MUTATION, {
     lines: [{ merchandiseId, quantity }],
-    buyerIdentity: { countryCode: country },
+    buyerIdentity: { countryCode: country, ...(email ? { email } : {}) },
   });
   return assertNoUserErrors(data.cartCreate);
 }
@@ -397,6 +397,14 @@ export async function updateCartCountry(cartId: string, country: string): Promis
   const data = await storefrontFetch<{ cartBuyerIdentityUpdate: CartMutationResult }>(
     CART_BUYER_IDENTITY_UPDATE_MUTATION,
     { cartId, buyerIdentity: { countryCode: country } }
+  );
+  return assertNoUserErrors(data.cartBuyerIdentityUpdate);
+}
+
+export async function updateCartEmail(cartId: string, email: string): Promise<Cart> {
+  const data = await storefrontFetch<{ cartBuyerIdentityUpdate: CartMutationResult }>(
+    CART_BUYER_IDENTITY_UPDATE_MUTATION,
+    { cartId, buyerIdentity: { email } }
   );
   return assertNoUserErrors(data.cartBuyerIdentityUpdate);
 }

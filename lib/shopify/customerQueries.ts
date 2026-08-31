@@ -1,13 +1,40 @@
 import { customerAccountFetch } from "./customerAccount";
 
+export type Money = { amount: string; currencyCode: string };
+
+export type OrderLineItem = {
+  title: string;
+  quantity: number;
+  variantTitle: string | null;
+  image: { url: string; altText: string | null } | null;
+  totalPrice: Money | null;
+};
+
+export type TrackingInformation = {
+  company: string | null;
+  number: string | null;
+  url: string | null;
+};
+
+export type Fulfillment = {
+  status: string | null;
+  trackingInformation: TrackingInformation[];
+};
+
 export type Order = {
   id: string;
   name: string;
   processedAt: string;
   financialStatus: string | null;
   fulfillmentStatus: string | null;
-  totalPrice: { amount: string; currencyCode: string };
-  lineItems: { edges: { node: { title: string; quantity: number } }[] };
+  statusPageUrl: string;
+  subtotal: Money | null;
+  totalShipping: Money;
+  totalTax: Money | null;
+  totalPrice: Money;
+  shippingAddress: { formatted: string[] } | null;
+  lineItems: { edges: { node: OrderLineItem }[] };
+  fulfillments: { edges: { node: Fulfillment }[] };
 };
 
 export type Customer = {
@@ -33,15 +60,52 @@ const CUSTOMER_QUERY = /* GraphQL */ `
             processedAt
             financialStatus
             fulfillmentStatus
+            statusPageUrl
+            subtotal {
+              amount
+              currencyCode
+            }
+            totalShipping {
+              amount
+              currencyCode
+            }
+            totalTax {
+              amount
+              currencyCode
+            }
             totalPrice {
               amount
               currencyCode
             }
-            lineItems(first: 5) {
+            shippingAddress {
+              formatted
+            }
+            lineItems(first: 10) {
               edges {
                 node {
                   title
                   quantity
+                  variantTitle
+                  image {
+                    url
+                    altText
+                  }
+                  totalPrice {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+            fulfillments(first: 5) {
+              edges {
+                node {
+                  status
+                  trackingInformation {
+                    company
+                    number
+                    url
+                  }
                 }
               }
             }

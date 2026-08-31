@@ -42,6 +42,16 @@ export function generateState(): string {
   return crypto.randomBytes(16).toString("hex");
 }
 
+export function decodeIdTokenEmail(idToken: string): string | null {
+  try {
+    const payload = idToken.split(".")[1];
+    const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { email?: string };
+    return claims.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function buildAuthorizeUrl(params: { state: string; codeChallenge: string }): string {
   const url = new URL(`${authBaseUrl()}/oauth/authorize`);
   url.searchParams.set("client_id", clientId());

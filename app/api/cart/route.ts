@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCartId, setCartId } from "@/lib/cart";
+import { getSession } from "@/lib/session";
+import { decodeIdTokenEmail } from "@/lib/shopify/customerAccount";
 import { addCartLine, createCart, getCart, removeCartLine, updateCartLine } from "@/lib/shopify/queries";
 
 export async function GET() {
@@ -18,9 +20,14 @@ export async function POST(req: NextRequest) {
   }
 
   const cartId = await getCartId();
-  const cart = cartId
-    ? await addCartLine(cartId, merchandiseId, quantity)
-    : await createCart(merchandiseId, quantity);
+  let cart;
+  if (cartId) {
+    cart = await addCartLine(cartId, merchandiseId, quantity);
+  } else {
+    const session = await getSession();
+    const email = session.idToken ? decodeIdTokenEmail(session.idToken) : null;
+    cart = await createCart(merchandiseId, quantity, email ?? undefined);
+  }
 
   await setCartId(cart.id);
   return NextResponse.json({ cart });
