@@ -5,14 +5,37 @@ import { COUNTRY_COOKIE, isValidCountry } from "@/lib/countries";
 // it isn't part of NextRequest's own type since Next.js 15 dropped it.
 type NetlifyGeoRequest = NextRequest & { geo?: { country?: { code?: string } } };
 
+// TEMPORARY: diagnosing why Netlify's geo detection isn't populating.
+// Remove this debug header + the candidate-header block once resolved.
+const CANDIDATE_GEO_HEADERS = [
+  "x-nf-geo",
+  "x-country",
+  "x-country-code",
+  "x-nf-client-connection-ip",
+  "x-nf-request-id",
+  "cf-ipcountry",
+  "x-vercel-ip-country",
+];
+
 export function middleware(request: NextRequest) {
+  const debugInfo = JSON.stringify({
+    geo: (request as NetlifyGeoRequest).geo ?? null,
+    headers: Object.fromEntries(
+      CANDIDATE_GEO_HEADERS.map((h) => [h, request.headers.get(h)]).filter(([, v]) => v !== null)
+    ),
+  });
+
   if (request.cookies.get(COUNTRY_COOKIE)) {
-    return NextResponse.next();
+    const res = NextResponse.next();
+    res.headers.set("x-debug-geo", debugInfo);
+    return res;
   }
 
   const detected = (request as NetlifyGeoRequest).geo?.country?.code;
   if (!detected || !isValidCountry(detected)) {
-    return NextResponse.next();
+    const res = NextResponse.next();
+    res.headers.set("x-debug-geo", debugInfo);
+    return res;
   }
 
   request.cookies.set(COUNTRY_COOKIE, detected);
@@ -22,6 +45,7 @@ export function middleware(request: NextRequest) {
     path: "/",
     sameSite: "lax",
   });
+  response.headers.set("x-debug-geo", debugInfo);
   return response;
 }
 
