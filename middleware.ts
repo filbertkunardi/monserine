@@ -17,13 +17,33 @@ function detectCountry(request: NextRequest): string | undefined {
 }
 
 export function middleware(request: NextRequest) {
+  // TEMPORARY diagnostics
+  const raw = request.headers.get("x-nf-geo");
+  let decoded: unknown = null;
+  let decodeError: string | null = null;
+  try {
+    decoded = raw ? JSON.parse(atob(raw)) : null;
+  } catch (e) {
+    decodeError = String(e);
+  }
+  const debugInfo = JSON.stringify({
+    hasCookie: !!request.cookies.get(COUNTRY_COOKIE),
+    rawPresent: !!raw,
+    decoded,
+    decodeError,
+  });
+
   if (request.cookies.get(COUNTRY_COOKIE)) {
-    return NextResponse.next();
+    const res = NextResponse.next();
+    res.headers.set("x-debug-geo2", debugInfo);
+    return res;
   }
 
   const detected = detectCountry(request);
   if (!detected || !isValidCountry(detected)) {
-    return NextResponse.next();
+    const res = NextResponse.next();
+    res.headers.set("x-debug-geo2", debugInfo);
+    return res;
   }
 
   request.cookies.set(COUNTRY_COOKIE, detected);
@@ -33,6 +53,7 @@ export function middleware(request: NextRequest) {
     path: "/",
     sameSite: "lax",
   });
+  response.headers.set("x-debug-geo2", debugInfo);
   return response;
 }
 
