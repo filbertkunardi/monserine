@@ -60,7 +60,7 @@ export default async function AccountPage() {
       {!customer ? (
         <a
           href="/api/auth/login"
-          className="inline-block bg-dark px-6 py-3 text-xs font-medium uppercase tracking-[0.08em] text-cream"
+          className="inline-block bg-button px-6 py-3 text-xs font-medium uppercase tracking-[0.08em] text-cream"
         >
           Log in with Shopify
         </a>

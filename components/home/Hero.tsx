@@ -84,7 +84,7 @@ export default function Hero() {
         <div className="flex gap-4">
           <Link
             href="/shop"
-            className="bg-dark px-8 py-[15px] text-xs font-medium uppercase tracking-[0.08em] text-cream"
+            className="bg-button px-8 py-[15px] text-xs font-medium uppercase tracking-[0.08em] text-cream"
           >
             Shop Now
           </Link>

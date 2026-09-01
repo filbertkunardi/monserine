@@ -40,7 +40,7 @@ export default async function SearchPage({
             <p className="text-sm text-body">No products found.</p>
             <Link
               href="/shop"
-              className="inline-block bg-dark px-6 py-3 text-xs font-medium uppercase tracking-[0.08em] text-cream"
+              className="inline-block bg-button px-6 py-3 text-xs font-medium uppercase tracking-[0.08em] text-cream"
             >
               Explore All Products
             </Link>

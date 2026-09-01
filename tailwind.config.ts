@@ -9,6 +9,7 @@ const config: Config = {
         creamPanel: "#EFE9E1",
         stripe: "#E7DFD3",
         dark: "#2B2926",
+        button: "#000000",
         body: "#5A544C",
         body2: "#4A4642",
         footerLink: "#C9C2B8",

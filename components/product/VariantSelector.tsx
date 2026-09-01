@@ -77,7 +77,7 @@ export default function VariantSelector({
                     key={value}
                     onClick={() => selectOption(option.name, value)}
                     className={`border px-[18px] py-2.5 text-[13px] font-medium ${
-                      isSelected ? "border-dark bg-dark text-cream" : "border-dark text-dark"
+                      isSelected ? "border-button bg-button text-cream" : "border-dark text-dark"
                     }`}
                   >
                     {value}
@@ -91,7 +91,7 @@ export default function VariantSelector({
       <button
         onClick={addToBag}
         disabled={!matchedVariant || !matchedVariant.availableForSale || isPending}
-        className="w-fit bg-dark px-8 py-4 text-xs font-medium uppercase tracking-[0.08em] text-cream disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-fit bg-button px-8 py-4 text-xs font-medium uppercase tracking-[0.08em] text-cream disabled:cursor-not-allowed disabled:opacity-40"
       >
         {matchedVariant?.availableForSale === false ? "Sold Out" : isPending ? "Adding..." : "Add to Bag"}
       </button>

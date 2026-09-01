@@ -35,7 +35,7 @@ export default async function CartPage() {
           </div>
           <a
             href={cart!.checkoutUrl}
-            className="mt-6 block w-full bg-dark py-3 text-center text-xs font-medium uppercase tracking-[0.08em] text-cream"
+            className="mt-6 block w-full bg-button py-3 text-center text-xs font-medium uppercase tracking-[0.08em] text-cream"
           >
             Checkout
           </a>
