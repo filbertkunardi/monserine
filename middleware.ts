@@ -1,49 +1,21 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { COUNTRY_COOKIE, isValidCountry } from "@/lib/countries";
 
-// Netlify's edge proxy sends geolocation as a base64-encoded JSON header,
-// not as `.geo` on the request object (that's never populated in practice).
-type NetlifyGeo = { country?: { code?: string } };
-
+// Netlify's edge proxy sets this header directly on requests reaching
+// middleware (the richer `x-nf-geo` JSON blob is only added later, when
+// forwarding to the origin function, so middleware never sees it).
 function detectCountry(request: NextRequest): string | undefined {
-  const raw = request.headers.get("x-nf-geo");
-  if (!raw) return undefined;
-  try {
-    const geo = JSON.parse(atob(raw)) as NetlifyGeo;
-    return geo.country?.code;
-  } catch {
-    return undefined;
-  }
+  return request.headers.get("x-country") ?? undefined;
 }
 
 export function middleware(request: NextRequest) {
-  // TEMPORARY diagnostics
-  const raw = request.headers.get("x-nf-geo");
-  let decoded: unknown = null;
-  let decodeError: string | null = null;
-  try {
-    decoded = raw ? JSON.parse(atob(raw)) : null;
-  } catch (e) {
-    decodeError = String(e);
-  }
-  const debugInfo = JSON.stringify({
-    hasCookie: !!request.cookies.get(COUNTRY_COOKIE),
-    rawPresent: !!raw,
-    decoded,
-    decodeError,
-  });
-
   if (request.cookies.get(COUNTRY_COOKIE)) {
-    const res = NextResponse.next();
-    res.headers.set("x-debug-geo2", debugInfo);
-    return res;
+    return NextResponse.next();
   }
 
   const detected = detectCountry(request);
   if (!detected || !isValidCountry(detected)) {
-    const res = NextResponse.next();
-    res.headers.set("x-debug-geo2", debugInfo);
-    return res;
+    return NextResponse.next();
   }
 
   request.cookies.set(COUNTRY_COOKIE, detected);
@@ -53,7 +25,6 @@ export function middleware(request: NextRequest) {
     path: "/",
     sameSite: "lax",
   });
-  response.headers.set("x-debug-geo2", debugInfo);
   return response;
 }
 
