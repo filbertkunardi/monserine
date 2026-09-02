@@ -11,6 +11,8 @@ const NAV_LINKS = [
   { href: "/connect", label: "Connect" },
 ];
 
+const MARQUEE_REPEATS = Array.from({ length: 3 }, (_, i) => i);
+
 const SHOP_CATEGORIES = [
   { href: "/shop", label: "All" },
   { href: "/shop?category=tops", label: "Tops" },
@@ -78,7 +80,7 @@ function CartLink({ cartCount }: { cartCount: number }) {
     <Link href="/cart" className="relative flex text-dark">
       <BagIcon />
       {cartCount > 0 && (
-        <span className="absolute -top-2 -right-2.5 flex h-[15px] w-[15px] items-center justify-center rounded-full bg-dark text-[9px] font-semibold text-cream">
+        <span className="absolute -top-2 -right-2.5 flex h-[15px] w-[15px] items-center justify-center rounded-full bg-button text-[9px] font-semibold text-cream">
           {cartCount}
         </span>
       )}
@@ -167,8 +169,23 @@ export default function SiteHeader({ cartCount }: { cartCount: number }) {
 
   return (
     <div className="bg-cream">
-      <div className="bg-dark px-2 py-[9px] text-center text-xs font-medium tracking-[0.08em] text-cream">
-        HOUSE OF MONSERINE - SIGN UP FOR 10% OFF
+      <div className="overflow-hidden bg-button py-[9px] text-xs font-medium tracking-[0.08em] text-cream">
+        <div className="flex w-max animate-marquee whitespace-nowrap min-[761px]:animate-marquee-desktop">
+          <div className="flex shrink-0">
+            {MARQUEE_REPEATS.map((i) => (
+              <span key={`a-${i}`} className="pr-[38vw] min-[761px]:pr-[34vw]">
+                HOUSE OF MONSERINE - SIGN UP FOR 10% OFF
+              </span>
+            ))}
+          </div>
+          <div className="flex shrink-0" aria-hidden="true">
+            {MARQUEE_REPEATS.map((i) => (
+              <span key={`b-${i}`} className="pr-[38vw] min-[761px]:pr-[34vw]">
+                HOUSE OF MONSERINE - SIGN UP FOR 10% OFF
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Desktop nav */}
@@ -239,9 +256,9 @@ export default function SiteHeader({ cartCount }: { cartCount: number }) {
           onClick={() => setSidebarOpen(true)}
           className="flex w-[22px] shrink-0 flex-col gap-[5px]"
         >
-          <span className="h-0.5 w-full bg-dark" />
-          <span className="h-0.5 w-full bg-dark" />
-          <span className="h-0.5 w-full bg-dark" />
+          <span className="h-0.5 w-full bg-button" />
+          <span className="h-0.5 w-full bg-button" />
+          <span className="h-0.5 w-full bg-button" />
         </button>
 
         {mobileSearchOpen ? (

@@ -29,9 +29,15 @@ const config: Config = {
           "0%": { transform: "translateX(10px)", opacity: "0" },
           "100%": { transform: "translateX(0)", opacity: "1" },
         },
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "search-in": "search-in 220ms ease-out",
+        marquee: "marquee 76s linear infinite",
+        "marquee-desktop": "marquee 90s linear infinite",
       },
     },
   },

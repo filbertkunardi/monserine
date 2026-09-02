@@ -33,10 +33,9 @@ export default function ProductRail({ products }: { products: Product[] }) {
 
   return (
     <div className="px-[clamp(20px,5vw,56px)] pb-16 pt-[clamp(48px,8vw,80px)]">
-      <div className="mb-11 flex flex-col items-center gap-0.5 text-center">
-        <div className="font-display text-xl font-medium uppercase tracking-[0.14em] text-black">Just Arrived</div>
-        <h2 className="-mt-2.5 font-script text-4xl font-normal leading-none tracking-normal text-dark lowercase">
-          explore our newest arrivals
+      <div className="mb-[30px] text-left">
+        <h2 className="font-sans text-[26px] font-bold uppercase leading-[1.15] tracking-[0.01em] text-[#151515] min-[768px]:text-[30px] min-[1068px]:text-[34px]">
+          New Arrivals
         </h2>
       </div>
 

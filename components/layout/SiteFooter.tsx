@@ -37,7 +37,7 @@ function CurrencySelector({ currentCountry }: { currentCountry: string }) {
         value={country}
         disabled={isPending}
         onChange={(e) => onChange(e.target.value)}
-        className="border border-footerLink/40 bg-dark px-2 py-1 text-[11px] normal-case tracking-normal text-footerLink disabled:opacity-60"
+        className="border border-footerLink/40 bg-button px-2 py-1 text-[11px] normal-case tracking-normal text-footerLink disabled:opacity-60"
       >
         {COUNTRIES.map((c) => (
           <option key={c.code} value={c.code} className="bg-cream text-dark">
@@ -51,7 +51,7 @@ function CurrencySelector({ currentCountry }: { currentCountry: string }) {
 
 export default function SiteFooter({ currentCountry }: { currentCountry: string }) {
   return (
-    <div className="flex flex-col items-center gap-5 bg-dark px-[clamp(20px,5vw,56px)] py-[clamp(32px,6vw,56px)] text-center">
+    <div className="flex flex-col items-center gap-5 bg-button px-[clamp(20px,5vw,56px)] py-[clamp(32px,6vw,56px)] text-center">
       <Link href="/" className="flex items-center">
         <Image
           src="/images/logo.png"

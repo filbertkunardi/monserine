@@ -72,12 +72,12 @@ export default function Hero() {
             alt=""
             width={56}
             height={56}
-            className="h-14 w-14 object-contain object-left brightness-200 invert"
+            className="h-14 w-14 object-contain object-left brightness-0"
           />
-          <h1 className="m-0 font-display text-[clamp(34px,7vw,64px)] font-normal leading-[0.98] tracking-[0.01em] text-cream">
+          <h1 className="m-0 font-display text-[clamp(34px,7vw,64px)] font-normal leading-[0.98] tracking-[0.01em] text-black">
             HOUSE OF MONSERINE
           </h1>
-          <p className="m-0 mt-1 max-w-[400px] text-[15px] font-light leading-[1.7] text-cream/90">
+          <p className="m-0 mt-1 max-w-[400px] text-[15px] font-light leading-[1.7] text-black/90">
             Feminine silhouettes for the modern muse.
           </p>
         </div>
